@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import lasagne
 import theano
+import theano.tensor as T
 
 from dltools import layers
 from dltools import nnet
@@ -84,14 +85,11 @@ class BuilderBase(object):
         Returns:
             The output tensor.
         """
-        try:
-            x = theano.sandbox.cuda.basic_ops.gpu_contiguous(x)
-            return theano.sandbox.cuda.dnn.GpuDnnSoftmax(
-                tensor_format='bc01', algo="log", mode="channel")(x)
-        except:
-            x = theano.gpuarray.dnn.gpu_contiguous(x)
-            return theano.gpuarray.dnn.GpuDnnSoftmax(
-                algo="log", mode="channel")(x)
+        x_3d = x.reshape((x.shape[0], x.shape[1], -1))
+        m = T.max(x_3d, axis=1, keepdims=True)
+        rebased_x = x_3d - m
+        lsm_3d = rebased_x - T.log(T.sum(T.exp(rebased_x), axis=1, keepdims=True))
+        return lsm_3d.reshape(x.shape)
 
 
 class FRRNBuilderBase(BuilderBase):
