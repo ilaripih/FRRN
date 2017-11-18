@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import math
 import logging
 import time
 
@@ -38,12 +39,12 @@ class MiniBatchOptimizer(object):
                 logging.info("Cannot run hook {}".format(h))
                 logging.info("Error message: {}".format(e))
 
-    def optimize(self):
+    def optimize(self, iterations=math.inf):
         """Runs the main loop until it is interrupted  via CTRL+C."""
         update_counter = 0
 
         # Start the optimization
-        while True:
+        while update_counter < iterations:
             losses = None
             duration = 0
 
